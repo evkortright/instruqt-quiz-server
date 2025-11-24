@@ -1,0 +1,12 @@
+lab1:
+  title: "Example Lab 1"
+  questions:
+    - id: 1
+      title: "Example Question"
+      text: "What is 2 + 2?"
+      placeholder: "Enter your answer..."
+      answers:
+        - pattern: "^4$"
+          flags: "i"
+      correct_message: "That's correct!"
+      hint: "Think about basic arithmetic."

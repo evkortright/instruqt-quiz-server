@@ -1,0 +1,53 @@
+lab1:
+  title: "Astronomy Shop Knowledge Check"
+  questions:
+    - id: 1
+      title: "Finding Pods"
+      text: "What command would you use to find the checkout service pod?"
+      placeholder: "Enter the kubectl command here..."
+      answers:
+        - pattern: "kubectl\\s+get\\s+pods.*grep.*checkout"
+          flags: "i"
+        - pattern: "kubectl\\s+get\\s+pod.*grep.*checkout"
+          flags: "i"
+      correct_message: "That command will find the checkout service pod."
+      hint: "Try using <code>kubectl get pods</code> with <code>grep</code> to filter for checkout."
+    
+    - id: 2
+      title: "Viewing Logs"
+      text: "What command would you use to view the last 20 lines of logs from a pod named <code>payment-ff6449546-qrwqz</code>?"
+      placeholder: "Enter the kubectl command here..."
+      answers:
+        - pattern: "kubectl\\s+logs.*payment-ff6449546-qrwqz.*--tail[= ]20"
+          flags: "i"
+        - pattern: "kubectl\\s+logs.*payment-ff6449546-qrwqz.*-n\\s+default.*--tail[= ]20"
+          flags: "i"
+        - pattern: "kubectl\\s+logs.*-n\\s+default.*payment-ff6449546-qrwqz.*--tail[= ]20"
+          flags: "i"
+      correct_message: "That command will show the last 20 log entries from the payment pod."
+      hint: "Use <code>kubectl logs &lt;pod-name&gt; --tail=20</code> to view the last 20 lines."
+    
+    - id: 3
+      title: "Default Namespace"
+      text: "What namespace are the Astronomy Shop services running in?"
+      placeholder: "Enter the namespace name..."
+      answers:
+        - pattern: "^default$"
+          flags: "i"
+      correct_message: "The services are running in the default namespace."
+      hint: "Review the kubectl commands you ran earlier - what namespace flag was used?"
+
+lab2:
+  title: "Elastic APM Service Map"
+  questions:
+    - id: 1
+      title: "Architecture Visualization"
+      text: "What Elastic APM feature automatically visualizes your microservices architecture?"
+      placeholder: "Enter the feature name..."
+      answers:
+        - pattern: "service\\s+map"
+          flags: "i"
+        - pattern: "servicemap"
+          flags: "i"
+      correct_message: "The Service Map provides automatic visualization of your architecture."
+      hint: "Think about the feature that shows how services connect to each other visually."
