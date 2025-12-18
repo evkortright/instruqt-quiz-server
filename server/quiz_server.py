@@ -718,5 +718,5 @@ def reset_page(course_name, lab_id):
                                  lab_id=lab_id)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8008))
+    port = int(os.environ.get('PORT', 8010))
     app.run(host='0.0.0.0', port=port, debug=False)
