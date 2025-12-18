@@ -51,3 +51,14 @@ lab2:
           flags: "i"
       correct_message: "The Service Map provides automatic visualization of your architecture."
       hint: "Think about the feature that shows how services connect to each other visually."
+    - id: 2
+      title: "Debug Sequence"
+      text: "Write two kubectl commands: (1) list all pods, (2) get logs from the frontend pod"
+      placeholder: "Enter commands, one per line..."
+      multiline: true
+      rows: 5
+      answers:
+        - pattern: "kubectl\\s+get\\s+pods.*kubectl\\s+logs.*frontend"
+          flags: "ims"
+      correct_message: "Great command sequence!"
+      hint: "Use 'kubectl get pods' on the first line, then 'kubectl logs frontend-...' on the second."

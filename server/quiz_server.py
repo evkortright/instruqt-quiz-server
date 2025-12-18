@@ -72,7 +72,7 @@ HTML_TEMPLATE = '''
         .question.completed h3 {
             color: #155724;
         }
-        input[type="text"] { 
+        input[type="text"], textarea { 
             width: 100%; 
             padding: 12px; 
             font-family: monospace;
@@ -82,7 +82,12 @@ HTML_TEMPLATE = '''
             margin-top: 10px;
             box-sizing: border-box;
         }
-        .question.completed input[type="text"] {
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .question.completed input[type="text"],
+        .question.completed textarea {
             background: #f0f8f0;
             border-color: #28a745;
         }
@@ -150,7 +155,10 @@ HTML_TEMPLATE = '''
     </style>
 </head>
 <body>
-    <h1>{{ quiz.title }}</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">{{ quiz.title }}</h1>
+        <button onclick="resetQuiz()" style="background: #dc3545; padding: 10px 20px;">Reset Quiz</button>
+    </div>
     
     <div class="progress" id="progress">
         <h2>Progress</h2>
@@ -161,7 +169,11 @@ HTML_TEMPLATE = '''
     <div class="question" id="q{{ question.id }}">
         <h3>Question {{ question.id }}: {{ question.title }}</h3>
         <p>{{ question.text|safe }}</p>
+        {% if question.multiline %}
+        <textarea id="answer{{ question.id }}" placeholder="{{ question.placeholder }}" rows="{{ question.rows|default(5) }}"></textarea>
+        {% else %}
         <input type="text" id="answer{{ question.id }}" placeholder="{{ question.placeholder }}">
+        {% endif %}
         <button onclick="checkAnswer({{ question.id }})" id="button{{ question.id }}">Check Answer</button>
         <div id="feedback{{ question.id }}" class="feedback"></div>
     </div>
@@ -259,11 +271,43 @@ HTML_TEMPLATE = '''
             });
         }
 
+        function resetQuiz() {
+            if (!confirm('Are you sure you want to reset this quiz? All progress will be lost.')) {
+                return;
+            }
+
+            fetch('/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_name: COURSE_NAME,
+                    lab_id: LAB_ID
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Clear localStorage
+                const storageKey = `quizProgress_${COURSE_NAME}_${LAB_ID}`;
+                localStorage.removeItem(storageKey);
+                
+                // Reload the page to show fresh quiz
+                alert('Quiz reset successfully!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error resetting quiz:', error);
+                alert('Failed to reset quiz: ' + error.message);
+            });
+        }
+
         for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
             const input = document.getElementById('answer' + i);
             if (input) {
                 input.addEventListener('keypress', function(event) {
-                    if (event.key === 'Enter') {
+                    // Only submit on Enter for text inputs, not textareas
+                    if (event.key === 'Enter' && this.tagName === 'INPUT') {
                         checkAnswer(i);
                     }
                 });
@@ -355,6 +399,165 @@ ERROR_TEMPLATE = '''
 </html>
 '''
 
+RESET_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reset Quiz - {{ course_name }}/{{ lab_id }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 40px;
+            max-width: 700px;
+            margin: 0 auto;
+            background: #f9f9f9;
+        }
+        .reset-box {
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .quiz-info {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn-reset {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #c82333;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="reset-box">
+        <h1>Reset Quiz Progress</h1>
+        <div class="quiz-info">
+            <strong>{{ course_name }}</strong> / {{ lab_id }}
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This will permanently delete your progress for this quiz.
+            You will need to answer all questions again.
+        </div>
+        
+        <p>This will reset:</p>
+        <ul style="text-align: left; display: inline-block;">
+            <li>Your saved answers in the browser</li>
+            <li>The completion status on the server</li>
+        </ul>
+        
+        <div>
+            <button class="btn-reset" onclick="resetQuiz()">Reset Quiz</button>
+            <button class="btn-cancel" onclick="goBack()">Cancel</button>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const COURSE_NAME = "{{ course_name }}";
+        const LAB_ID = "{{ lab_id }}";
+
+        function resetQuiz() {
+            if (!confirm('Are you sure you want to reset this quiz? This cannot be undone.')) {
+                return;
+            }
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+
+            fetch('/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_name: COURSE_NAME,
+                    lab_id: LAB_ID,
+                    reset_all: false
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Clear localStorage
+                const storageKey = `quizProgress_${COURSE_NAME}_${LAB_ID}`;
+                localStorage.removeItem(storageKey);
+
+                // Show success message
+                messageDiv.className = 'message success';
+                messageDiv.style.display = 'block';
+                messageDiv.innerHTML = `
+                    <strong>✓ Quiz Reset Successfully!</strong><br>
+                    <p>Deleted files: ${data.deleted_files.length > 0 ? data.deleted_files.join(', ') : 'None'}</p>
+                    <p>Browser storage cleared.</p>
+                    <p><a href="/${COURSE_NAME}/${LAB_ID}">Return to quiz</a></p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                messageDiv.innerHTML = '<strong>✗ Error:</strong> Failed to reset quiz. ' + error.message;
+            });
+        }
+
+        function goBack() {
+            window.location.href = `/${COURSE_NAME}/${LAB_ID}`;
+        }
+    </script>
+</body>
+</html>
+'''
+
 @app.route('/')
 def index():
     """Show available courses and labs"""
@@ -428,6 +631,8 @@ def validate():
             regex_flags |= re.IGNORECASE
         if 'm' in flags:
             regex_flags |= re.MULTILINE
+        if 's' in flags:
+            regex_flags |= re.DOTALL
         
         if re.search(pattern, answer, regex_flags):
             return jsonify({
@@ -464,6 +669,54 @@ def complete():
             'message': str(e)
         }), 500
 
+@app.route('/reset', methods=['POST'])
+def reset():
+    """Reset quiz progress - deletes completion file and clears localStorage"""
+    data = request.json
+    course_name = data.get('course_name')
+    lab_id = data.get('lab_id')
+    reset_all = data.get('reset_all', False)
+    
+    deleted_files = []
+    errors = []
+    
+    try:
+        if reset_all:
+            # Delete all completion files
+            import glob
+            for filepath in glob.glob('/root/quiz_complete_*.txt'):
+                try:
+                    os.remove(filepath)
+                    deleted_files.append(os.path.basename(filepath))
+                except Exception as e:
+                    errors.append(f"Failed to delete {filepath}: {str(e)}")
+        else:
+            # Delete specific completion file
+            completion_file = f'/root/quiz_complete_{course_name}_{lab_id}.txt'
+            if os.path.exists(completion_file):
+                os.remove(completion_file)
+                deleted_files.append(os.path.basename(completion_file))
+        
+        return jsonify({
+            'success': True,
+            'message': f'Quiz reset completed',
+            'deleted_files': deleted_files,
+            'errors': errors if errors else None,
+            'localStorage_key': f'quizProgress_{course_name}_{lab_id}' if not reset_all else 'quizProgress_*'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@app.route('/reset-page/<course_name>/<lab_id>')
+def reset_page(course_name, lab_id):
+    """Provide a simple page to reset a specific quiz"""
+    return render_template_string(RESET_TEMPLATE, 
+                                 course_name=course_name, 
+                                 lab_id=lab_id)
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8010))
+    port = int(os.environ.get('PORT', 8008))
     app.run(host='0.0.0.0', port=port, debug=False)
