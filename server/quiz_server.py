@@ -272,10 +272,6 @@ HTML_TEMPLATE = '''
         }
 
         function resetQuiz() {
-            if (!confirm('Are you sure you want to reset this quiz? All progress will be lost.')) {
-                return;
-            }
-
             fetch('/reset', {
                 method: 'POST',
                 headers: {
@@ -293,12 +289,14 @@ HTML_TEMPLATE = '''
                 localStorage.removeItem(storageKey);
                 
                 // Reload the page to show fresh quiz
-                alert('Quiz reset successfully!');
                 location.reload();
             })
             .catch(error => {
                 console.error('Error resetting quiz:', error);
-                alert('Failed to reset quiz: ' + error.message);
+                // Still clear localStorage and reload even if server call fails
+                const storageKey = `quizProgress_${COURSE_NAME}_${LAB_ID}`;
+                localStorage.removeItem(storageKey);
+                location.reload();
             });
         }
 
@@ -508,10 +506,6 @@ RESET_TEMPLATE = '''
         const LAB_ID = "{{ lab_id }}";
 
         function resetQuiz() {
-            if (!confirm('Are you sure you want to reset this quiz? This cannot be undone.')) {
-                return;
-            }
-
             const messageDiv = document.getElementById('message');
             messageDiv.style.display = 'none';
 
@@ -544,9 +538,18 @@ RESET_TEMPLATE = '''
             })
             .catch(error => {
                 console.error('Error:', error);
-                messageDiv.className = 'message error';
+                
+                // Still clear localStorage even if server call fails
+                const storageKey = `quizProgress_${COURSE_NAME}_${LAB_ID}`;
+                localStorage.removeItem(storageKey);
+                
+                messageDiv.className = 'message success';
                 messageDiv.style.display = 'block';
-                messageDiv.innerHTML = '<strong>✗ Error:</strong> Failed to reset quiz. ' + error.message;
+                messageDiv.innerHTML = `
+                    <strong>✓ Browser Storage Cleared!</strong><br>
+                    <p>Server file deletion may have failed, but your progress has been reset.</p>
+                    <p><a href="/${COURSE_NAME}/${LAB_ID}">Return to quiz</a></p>
+                `;
             });
         }
 
