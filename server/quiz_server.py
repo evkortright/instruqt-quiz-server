@@ -43,44 +43,61 @@ HTML_TEMPLATE = '''
     <title>{{ quiz.title }}</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             padding: 40px;
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: #f9f9f9;
+            background: #1a1d24;
+            color: #e5e7eb;
+            line-height: 1.6;
         }
         h1 {
-            color: #333;
+            color: #f9fafb;
             margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
         }
         .question { 
             margin: 20px 0;
             padding: 25px;
-            background: white;
+            background: #272b33;
             border-radius: 8px;
-            border: 2px solid #ddd;
+            border: 1px solid #3b4048;
             transition: all 0.3s ease;
         }
         .question.completed {
-            background: #d4edda;
-            border-color: #28a745;
+            background: #1a3a2e;
+            border-color: #2d5f4a;
         }
         .question h3 {
             margin-top: 0;
-            color: #333;
+            color: #f9fafb;
+            font-size: 18px;
+            font-weight: 600;
         }
         .question.completed h3 {
-            color: #155724;
+            color: #86efac;
+        }
+        .question p {
+            color: #d1d5db;
+            margin: 10px 0;
         }
         input[type="text"], textarea { 
             width: 100%; 
             padding: 12px; 
-            font-family: monospace;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
             font-size: 14px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
+            background: #1a1d24;
+            color: #e5e7eb;
+            border: 1px solid #3b4048;
+            border-radius: 6px;
             margin-top: 10px;
             box-sizing: border-box;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
         }
         textarea {
             min-height: 100px;
@@ -88,21 +105,32 @@ HTML_TEMPLATE = '''
         }
         .question.completed input[type="text"],
         .question.completed textarea {
-            background: #f0f8f0;
-            border-color: #28a745;
+            background: #1a3a2e;
+            border-color: #2d5f4a;
         }
         button { 
-            padding: 12px 24px; 
-            background: #0077cc; 
+            padding: 10px 20px; 
             color: white; 
             border: none; 
             cursor: pointer;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
             margin-top: 10px;
+            transition: all 0.2s ease;
         }
         button:hover {
-            background: #005fa3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .question button {
+            background: #7c3aed;
+        }
+        .question button:hover {
+            background: #6d28d9;
         }
         button.hidden {
             display: none;
@@ -110,21 +138,21 @@ HTML_TEMPLATE = '''
         .feedback { 
             margin-top: 15px; 
             padding: 15px; 
-            border-radius: 4px;
+            border-radius: 6px;
             display: none;
         }
         .correct { 
-            background: #d4edda; 
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #1a3a2e;
+            color: #86efac;
+            border: 1px solid #2d5f4a;
         }
         .incorrect { 
-            background: #f8d7da; 
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #3a1a1a;
+            color: #fca5a5;
+            border: 1px solid #5f2d2d;
         }
         .checkmark {
-            color: #28a745;
+            color: #86efac;
             font-size: 20px;
             font-weight: bold;
             margin-left: 10px;
@@ -132,32 +160,64 @@ HTML_TEMPLATE = '''
         .progress {
             margin: 30px 0;
             padding: 20px;
-            background: white;
+            background: #272b33;
             border-radius: 8px;
-            border: 2px solid #ddd;
+            border: 1px solid #3b4048;
             text-align: center;
         }
         .progress h2 {
             margin: 0 0 10px 0;
-            color: #333;
+            color: #f9fafb;
+            font-size: 20px;
+            font-weight: 600;
         }
         .progress-text {
-            font-size: 18px;
-            color: #666;
+            font-size: 16px;
+            color: #9ca3af;
         }
         .progress.complete {
-            background: #d4edda;
-            border-color: #28a745;
+            background: #1a3a2e;
+            border-color: #2d5f4a;
         }
         .progress.complete h2 {
-            color: #155724;
+            color: #86efac;
+        }
+        .progress.complete .progress-text {
+            color: #f0fdf4;
+        }
+        .progress.complete .progress-text strong {
+            color: #f0fdf4;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header-container h1 {
+            margin: 0;
+        }
+        .reset-btn {
+            background: #dc2626;
+            padding: 10px 20px;
+        }
+        .reset-btn:hover {
+            background: #b91c1c;
+        }
+        code {
+            background: #1a1d24;
+            color: #86efac;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="margin: 0;">{{ quiz.title }}</h1>
-        <button onclick="resetQuiz()" style="background: #dc3545; padding: 10px 20px;">Reset Quiz</button>
+    <div class="header-container">
+        <h1>{{ quiz.title }}</h1>
+        <button class="reset-btn" onclick="resetQuiz()">Reset Quiz</button>
     </div>
     
     <div class="progress" id="progress">
@@ -356,24 +416,25 @@ ERROR_TEMPLATE = '''
     <title>Quiz Not Found</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             padding: 40px;
             max-width: 900px;
             margin: 0 auto;
-            background: #f9f9f9;
+            background: #1a1d24;
+            color: #e5e7eb;
         }
         .error {
             padding: 20px;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #3a1a1a;
+            color: #fca5a5;
+            border: 1px solid #5f2d2d;
             border-radius: 8px;
         }
-        h1 { color: #721c24; }
-        h2 { color: #333; margin-top: 30px; }
+        h1 { color: #fca5a5; font-weight: 600; }
+        h2 { color: #f9fafb; margin-top: 30px; font-weight: 600; }
         ul { margin-top: 10px; }
         li { margin: 5px 0; }
-        a { color: #0077cc; text-decoration: none; }
+        a { color: #60a5fa; text-decoration: none; }
         a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -405,73 +466,94 @@ RESET_TEMPLATE = '''
     <title>Reset Quiz - {{ course_name }}/{{ lab_id }}</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             padding: 40px;
             max-width: 700px;
             margin: 0 auto;
-            background: #f9f9f9;
+            background: #1a1d24;
+            color: #e5e7eb;
         }
         .reset-box {
             padding: 30px;
-            background: white;
+            background: #272b33;
             border-radius: 8px;
-            border: 2px solid #ddd;
+            border: 1px solid #3b4048;
             text-align: center;
         }
         h1 {
-            color: #333;
+            color: #f9fafb;
             margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 600;
         }
         .quiz-info {
-            color: #666;
+            color: #9ca3af;
             margin-bottom: 30px;
             font-size: 18px;
         }
         .warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
+            background: #3a2a1a;
+            border: 1px solid #5f4a2d;
+            color: #fbbf24;
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin: 20px 0;
         }
         button {
-            padding: 15px 30px;
-            font-size: 16px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             margin: 10px;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
         .btn-reset {
-            background: #dc3545;
+            background: #dc2626;
             color: white;
         }
         .btn-reset:hover {
-            background: #c82333;
+            background: #b91c1c;
         }
         .btn-cancel {
-            background: #6c757d;
+            background: #4b5563;
             color: white;
         }
         .btn-cancel:hover {
-            background: #5a6268;
+            background: #374151;
         }
         .message {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             display: none;
         }
         .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #1a3a2e;
+            color: #86efac;
+            border: 1px solid #2d5f4a;
         }
         .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #3a1a1a;
+            color: #fca5a5;
+            border: 1px solid #5f2d2d;
+        }
+        ul {
+            text-align: left;
+            display: inline-block;
+            color: #d1d5db;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -488,7 +570,7 @@ RESET_TEMPLATE = '''
         </div>
         
         <p>This will reset:</p>
-        <ul style="text-align: left; display: inline-block;">
+        <ul>
             <li>Your saved answers in the browser</li>
             <li>The completion status on the server</li>
         </ul>
@@ -721,5 +803,5 @@ def reset_page(course_name, lab_id):
                                  lab_id=lab_id)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8010))
+    port = int(os.environ.get('PORT', 8008))
     app.run(host='0.0.0.0', port=port, debug=False)
